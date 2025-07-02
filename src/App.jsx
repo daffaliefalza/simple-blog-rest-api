@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PostsPage from "./pages/PostsPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import Navbar from "./components/Navbar";
+import HomePage from "./pages/HomePage";
 
 function App() {
   return (
@@ -10,7 +11,8 @@ function App() {
         <Navbar />
         <main className="container">
           <Routes>
-            <Route path="/" element={<PostsPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/posts" element={<PostsPage />} />
             <Route path="/posts/:postId" element={<PostDetailPage />} />
           </Routes>
         </main>
