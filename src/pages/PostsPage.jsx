@@ -15,6 +15,7 @@ const PostsPage = () => {
     const fetchPosts = async () => {
       try {
         const response = await axios.get("http://localhost:3000/posts");
+        console.log(response);
         setPosts(response.data);
         setFilteredPosts(response.data);
         setLoading(false);
@@ -52,24 +53,52 @@ const PostsPage = () => {
   };
 
   const handleDelete = async (postId) => {
-    const postToDelete = posts.find((post) => post.id === postId);
+    const postToDelete = posts.find((post) => post._id === postId);
 
     const isConfirmed = window.confirm(
-      `Are you sure you want to delete the post "${postToDelete.title}"?`
+      `Are you sure you want to delete the post "${postToDelete?.title}"?`
     );
 
     if (!isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:3000/posts/${postId}`);
-      setPosts(posts.filter((post) => post.id !== postId));
-      // Show success message
-      alert("Post deleted successfully!");
+      const response = await axios.delete(
+        `http://localhost:3000/posts/${postId}`
+      );
+
+      if (response.data.success) {
+        setPosts(posts.filter((post) => post._id !== postId));
+        alert(response.data.message);
+      } else {
+        alert(response.data.message || "Failed to delete post");
+      }
     } catch (err) {
-      setError(err.message);
-      alert("Failed to delete post. Please try again.");
+      console.error("Delete error:", err.response?.data || err.message);
+      alert(
+        err.response?.data?.message ||
+          "Failed to delete post. Please try again."
+      );
     }
   };
+  // const handleDelete = async (postId) => {
+  //   const postToDelete = posts.find((post) => post._id === postId);
+
+  //   const isConfirmed = window.confirm(
+  //     `Are you sure you want to delete the post "${postToDelete?.title}"?`
+  //   );
+
+  //   if (!isConfirmed) return;
+
+  //   try {
+  //     await axios.delete(`http://localhost:3000/posts/${postId}`);
+  //     setPosts(posts.filter((post) => post._id !== postId));
+  //     alert("Post deleted successfully!");
+  //   } catch (err) {
+  //     setError(err.message);
+  //     alert("Failed to delete post. Please try again.");
+  //   }
+  // };
+
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
@@ -110,15 +139,19 @@ const PostsPage = () => {
       ) : (
         <div className="posts-grid">
           {filteredPosts.map((post) => (
-            <div key={post.id} className="post-card">
+            <div key={post._id} className="post-card">
+              {" "}
+              {/* Changed post.id to post._id */}
               <h2>{post.title}</h2>
               <p>{post.content}</p>
               <div className="post-actions">
-                <Link to={`/posts/${post.id}`} className="btn btn-view">
+                <Link to={`/posts/${post._id}`} className="btn btn-view">
+                  {" "}
+                  {/* Changed post.id to post._id */}
                   View Details
                 </Link>
                 <button
-                  onClick={() => handleDelete(post.id)}
+                  onClick={() => handleDelete(post._id)}
                   className="btn btn-delete"
                 >
                   Delete
