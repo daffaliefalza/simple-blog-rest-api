@@ -25,11 +25,11 @@ const PostDetailPage = () => {
           axios.get(`http://localhost:3000/posts/${postId}/comments`),
         ]);
 
-        setPost(postResponse.data[0]);
+        setPost(postResponse.data); // Removed [0] since MongoDB returns single object
         setComments(commentsResponse.data);
         setFormData({
-          title: postResponse.data[0].title,
-          content: postResponse.data[0].content,
+          title: postResponse.data.title,
+          content: postResponse.data.content,
         });
         setLoading(false);
       } catch (err) {
@@ -57,7 +57,7 @@ const PostDetailPage = () => {
 
   const handleDelete = async () => {
     const isConfirmed = window.confirm(
-      `Are you sure you want to delete the post "${post.title}"?`
+      `Are you sure you want to delete the post "${post?.title}"?`
     );
 
     if (!isConfirmed) return;
@@ -73,17 +73,45 @@ const PostDetailPage = () => {
 
   const handleAddComment = async (commentContent) => {
     try {
-      // Since your backend doesn't have a comment POST endpoint, we'll simulate it
-      const newComment = {
-        id: comments.length + 1,
-        content: commentContent,
-        postId: parseInt(postId),
-      };
-      setComments([...comments, newComment]);
+      const response = await axios.post(
+        `http://localhost:3000/posts/${postId}/comments`,
+        { content: commentContent },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data && response.data._id) {
+        // Add the new comment to the state
+        setComments((prev) => [response.data, ...prev]);
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (err) {
-      setError(err.message);
+      console.error("Comment submission error:", {
+        message: err.message,
+        response: err.response?.data,
+      });
+      alert(err.response?.data?.message || "Failed to add comment");
     }
   };
+
+  // const handleAddComment = async (commentContent) => {
+  //   try {
+  //     // Now using actual API endpoint for comments
+  //     const response = await axios.post(
+  //       `http://localhost:3000/posts/${postId}/comments`,
+  //       {
+  //         content: commentContent,
+  //       }
+  //     );
+  //     setComments([...comments, response.data]);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   }
+  // };
 
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">Error: {error}</div>;
