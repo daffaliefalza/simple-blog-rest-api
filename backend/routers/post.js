@@ -177,25 +177,65 @@ router.use("/:postId/comments", commentRouter);
 
 router.get("/", async (req, res) => {
   try {
-    const { keyword } = req.query;
-    let posts;
+    const keyword = req.query.keyword;
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const skip = (page - 1) * pageSize;
 
-    if (keyword) {
-      posts = await Post.find({
-        $or: [
-          { title: { $regex: keyword, $options: "i" } },
-          { content: { $regex: keyword, $options: "i" } },
-        ],
+    // If no keyword, return all posts with pagination
+    if (!keyword) {
+      const total = await Post.countDocuments();
+      const findPosts = await Post.find().skip(skip).limit(pageSize);
+      return res.json({
+        data: findPosts,
+        total,
+        page,
+        pageSize,
       });
-    } else {
-      posts = await Post.find();
     }
 
-    res.json(posts);
+    // If keyword exists, search with filter + pagination
+    const filter = {
+      $or: [
+        { title: { $regex: `.*${keyword}.*`, $options: "i" } },
+        { content: { $regex: `.*${keyword}.*`, $options: "i" } },
+      ],
+    };
+
+    const total = await Post.countDocuments(filter);
+    const findPosts = await Post.find(filter).skip(skip).limit(pageSize);
+    res.json({
+      data: findPosts,
+      total,
+      page,
+      pageSize,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+// router.get("/", async (req, res) => {
+//   try {
+//     const { keyword } = req.query;
+//     let posts;
+
+//     if (keyword) {
+//       posts = await Post.find({
+//         $or: [
+//           { title: { $regex: keyword, $options: "i" } },
+//           { content: { $regex: keyword, $options: "i" } },
+//         ],
+//       });
+//     } else {
+//       posts = await Post.find();
+//     }
+
+//     res.json(posts);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
 router.post("/", async (req, res) => {
   try {
