@@ -3,6 +3,7 @@ import PostsPage from "./pages/PostsPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
+import PostsPageDup from "./pages/PostsPageDup";
 
 function App() {
   return (
@@ -12,7 +13,8 @@ function App() {
         <main className="container">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/posts" element={<PostsPage />} />
+            {/* <Route path="/posts" element={<PostsPage />} /> */}
+            <Route path="/posts" element={<PostsPageDup />} />
             <Route path="/posts/:postId" element={<PostDetailPage />} />
           </Routes>
         </main>
